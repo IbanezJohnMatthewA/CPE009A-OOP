@@ -1,0 +1,46 @@
+import tkinter as tk
+from tkinter import messagebox
+import sqlitedict # type: ignore
+
+# Function to register the account
+def register_account():
+    username = entry_username.get()
+    password = entry_password.get()
+    email = entry_email.get()
+
+    # Check for empty fields
+    if not username or not password or not email:
+        messagebox.showwarning("Warning", "Please fill in all fields.")
+        return
+
+    # Save to SQLite database using sqlitedict
+    with sqlitedict.SqliteDict('./accounts.sqlite', autocommit=True) as db:
+        if username in db:
+            messagebox.showwarning("Warning", "Username already exists.")
+        else:
+            db[username] = {'password': password, 'email': email}
+            messagebox.showinfo("Success", "Registration successful!")
+
+# Create the main window
+root = tk.Tk()
+root.title("Account Registration")
+
+# Create and place labels and entry fields
+tk.Label(root, text="Username").grid(row=0, column=0)
+entry_username = tk.Entry(root)
+entry_username.grid(row=0, column=1)
+
+tk.Label(root, text="Password").grid(row=1, column=0)
+entry_password = tk.Entry(root, show='*')
+entry_password.grid(row=1, column=1)
+
+tk.Label(root, text="Email").grid(row=2, column=0)
+entry_email = tk.Entry(root)
+entry_email.grid(row=2, column=1)
+
+# Create and place the register button
+btn_register = tk.Button(root, text="Register", command=register_account)
+btn_register.grid(row=3, columnspan=2)
+
+# Start the GUI main loop
+root.mainloop()
