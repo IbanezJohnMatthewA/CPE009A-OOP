@@ -1,0 +1,91 @@
+import tkinter 
+from tkinter import Tk, Label, Radiobutton, Entry, Button, Text, StringVar, messagebox, NORMAL, DISABLED, END
+import json
+
+
+class MyWindow:
+    def __init__(self, window):
+        self.lbl = Label(window, text="Fish Information")
+        self.lbl.place(x=70, y=20)
+
+        self.option_var = StringVar(value="name")
+
+        self.radio_name = Radiobutton(window, text="Enter Fish Name", variable=self.option_var, value="name")
+        self.radio_name.place(x=80, y=60)
+
+        self.radio_description = Radiobutton(window, text="Describe by Size or Color", variable=self.option_var,
+                                             value="description")
+        self.radio_description.place(x=80, y=90)
+
+        self.lbl1 = Label(window, text="Enter Fish Name or Description:", fg="red")
+        self.lbl1.place(x=75, y=120)
+
+        self.txt1 = Entry(window, bd=2)
+        self.txt1.place(x=80, y=150)
+
+        self.btn_search = Button(window, text="Search", command=self.search_fish)
+        self.btn_search.place(x=80, y=180)
+
+        self.result_label = Label(window, text="Fish Information:", fg="blue")
+        self.result_label.place(x=75, y=220)
+
+        self.txt2 = Text(window, height=5, width=40)
+        self.txt2.place(x=75, y=250)
+        self.txt2.config(state=DISABLED)
+
+        # Load fish information from JSON file
+        self.fish_info = {}  # Initialize fish_info here to prevent errors before loading
+        self.load_fish_info()
+
+    def load_fish_info(self):
+        """Load fish information from a JSON file."""
+        try:
+            with open("fish.json", "r") as file:
+                self.fish_info = json.load(file)  # Load the fish data correctly
+        except FileNotFoundError:
+            messagebox.showerror("Error", "Fish information file not found.")
+        except json.JSONDecodeError:
+            messagebox.showerror("Error", "Fish information file is not a valid JSON.")
+
+    def search_fish(self):
+        query = self.txt1.get().strip().lower()
+        if not query:
+            messagebox.showwarning("Input Error", "Please enter a name or description to search.")
+            return
+
+        fish_info_text = ""
+
+        if self.option_var.get() == "name":
+            # Search by fish name
+            found = False
+            for fish in self.fish_info:
+                if "name" in fish and fish["name"].lower() == query:
+                    fish_info_text = f"Name: {fish['name']}\nSize: {fish['size']}\nColor: {fish['color']}"
+                    found = True
+                    break
+            if not found:
+                fish_info_text = "Fish not found."
+        elif self.option_var.get() == "description":
+            # Search by size or color description
+            found = False
+            for fish in self.fish_info:
+                if query in fish['size'].lower() or query in fish['color'].lower():
+                    fish_info_text = f"Name: {fish['name']}\nSize: {fish['size']}\nColor: {fish['color']}"
+                    found = True
+                    break
+            if not found:
+                fish_info_text = "No fish found matching the description."
+
+        # Update the text box with the search result
+        self.txt2.config(state=NORMAL)
+        self.txt2.delete(1.0, 'end')
+        self.txt2.insert(END, fish_info_text)
+        self.txt2.config(state=DISABLED)
+
+
+# Create the window
+window = Tk()
+mywin = MyWindow(window)
+window.geometry("400x350+10+20")
+window.title("Fish Information")
+window.mainloop()
